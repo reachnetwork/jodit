@@ -68,19 +68,23 @@ export function alignElement(command: string, box: HTMLElement): void {
 
 		switch (command.toLowerCase()) {
 			case 'justifyfull':
-				box.style.textAlign = 'justify';
+        box.classList.remove('text--left', 'text--centered', 'text--right');
+        box.classList.add('text--justify');
 				break;
 
 			case 'justifyright':
-				box.style.textAlign = 'right';
+        box.classList.remove('text--left', 'text--centered', 'text--justify');
+        box.classList.add('text--right');
 				break;
 
 			case 'justifyleft':
-				box.style.textAlign = 'left';
+        box.classList.remove('text--justify', 'text--centered', 'text--right');
+        box.classList.add('text--left');
 				break;
 
 			case 'justifycenter':
-				box.style.textAlign = 'center';
+        box.classList.remove('text--left', 'text--justify', 'text--right');
+        box.classList.add('text--centered');
 				break;
 		}
 	}
