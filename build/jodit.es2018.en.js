@@ -6874,82 +6874,96 @@ function previewBox(editor, defaultValue, points = 'px', container = null) {
             position: 'relative',
             padding: 16
         });
-        const value = editor.value ||
-            `<div style='position: absolute;left:50%;top:50%;transform: translateX(-50%) translateY(-50%);color:#ccc;'>${editor.i18n('Empty')}</div>`;
-        if (editor.iframe) {
-            const iframe = editor.create.element('iframe');
-            (0,_css__WEBPACK_IMPORTED_MODULE_3__/* .css */ .i)(iframe, {
-                minWidth: 800,
-                minHeight: 600,
-                border: 0
-            });
-            div.appendChild(iframe);
-            const myWindow = iframe.contentWindow;
-            if (myWindow) {
-                editor.e.fire('generateDocumentStructure.iframe', myWindow.document, editor);
-                div = myWindow.document.body;
-                if (typeof ResizeObserver === 'function') {
-                    const resizeObserver = new ResizeObserver(entries => {
-                        iframe.style.height =
-                            myWindow.document.body.offsetHeight + 20 + 'px';
-                    });
-                    resizeObserver.observe(myWindow.document.body);
-                    editor.e.on('beforeDestruct', () => {
-                        resizeObserver.unobserve(myWindow.document.body);
-                    });
-                }
-            }
+        const tabs = document.querySelector('editor-tabs');
+        let currentItem;
+        if (tabs) {
+            currentItem = tabs.currentItem();
         }
-        else {
-            (0,_css__WEBPACK_IMPORTED_MODULE_3__/* .css */ .i)(div, {
-                minWidth: 1024,
-                minHeight: 600,
-                border: 0
-            });
-        }
-        const setHTML = (box, value) => {
-            const dv = (0,jodit_core_helpers_checker_is_string__WEBPACK_IMPORTED_MODULE_4__/* .isString */ .H)(value) ? editor.c.div() : value;
-            if ((0,jodit_core_helpers_checker_is_string__WEBPACK_IMPORTED_MODULE_4__/* .isString */ .H)(value)) {
-                dv.innerHTML = value;
-            }
-            for (let i = 0; i < dv.childNodes.length; i += 1) {
-                const c = dv.childNodes[i];
-                if (jodit_core_dom_dom__WEBPACK_IMPORTED_MODULE_0__/* .Dom.isElement */ .i.isElement(c)) {
-                    const newNode = box.ownerDocument.createElement(c.nodeName);
-                    for (let j = 0; j < c.attributes.length; j += 1) {
-                        (0,_utils__WEBPACK_IMPORTED_MODULE_1__/* .attr */ .Lj)(newNode, c.attributes[j].nodeName, c.attributes[j].nodeValue);
-                    }
-                    if (c.childNodes.length === 0 || jodit_core_dom_dom__WEBPACK_IMPORTED_MODULE_0__/* .Dom.isTag */ .i.isTag(c, ['table'])) {
-                        switch (c.nodeName) {
-                            case 'SCRIPT':
-                                if (c.textContent) {
-                                    newNode.textContent = c.textContent;
-                                }
-                                break;
-                            default:
-                                if (c.innerHTML) {
-                                    newNode.innerHTML = c.innerHTML;
-                                }
-                                break;
+        let value = '';
+        if (currentItem && currentItem.id) {
+            fetch(`${window.location.origin}/preview-item/${currentItem.id}`).then(resp => { return resp.text(); }).then(text => {
+                console.log('text', text);
+                value = text;
+                if (editor.iframe) {
+                    const iframe = editor.create.element('iframe');
+                    (0,_css__WEBPACK_IMPORTED_MODULE_3__/* .css */ .i)(iframe, {
+                        minWidth: 800,
+                        minHeight: 600,
+                        border: 0
+                    });
+                    div.appendChild(iframe);
+                    const myWindow = iframe.contentWindow;
+                    if (myWindow) {
+                        editor.e.fire('generateDocumentStructure.iframe', myWindow.document, editor);
+                        div = myWindow.document.body;
+                        if (typeof ResizeObserver === 'function') {
+                            const resizeObserver = new ResizeObserver(entries => {
+                                iframe.style.height =
+                                    myWindow.document.body.offsetHeight + 20 + 'px';
+                            });
+                            resizeObserver.observe(myWindow.document.body);
+                            editor.e.on('beforeDestruct', () => {
+                                resizeObserver.unobserve(myWindow.document.body);
+                            });
                         }
                     }
-                    else {
-                        setHTML(newNode, c);
-                    }
-                    try {
-                        box.appendChild(newNode);
-                    }
-                    catch (_a) { }
                 }
                 else {
-                    try {
-                        box.appendChild(c.cloneNode(true));
-                    }
-                    catch (_b) { }
+                    (0,_css__WEBPACK_IMPORTED_MODULE_3__/* .css */ .i)(div, {
+                        minWidth: 1024,
+                        minHeight: 600,
+                        border: 0
+                    });
                 }
-            }
-        };
-        setHTML(div, value);
+                const setHTML = (box, value) => {
+                    const dv = (0,jodit_core_helpers_checker_is_string__WEBPACK_IMPORTED_MODULE_4__/* .isString */ .H)(value) ? editor.c.div() : value;
+                    if ((0,jodit_core_helpers_checker_is_string__WEBPACK_IMPORTED_MODULE_4__/* .isString */ .H)(value)) {
+                        dv.innerHTML = value;
+                    }
+                    for (let i = 0; i < dv.childNodes.length; i += 1) {
+                        const c = dv.childNodes[i];
+                        if (jodit_core_dom_dom__WEBPACK_IMPORTED_MODULE_0__/* .Dom.isElement */ .i.isElement(c)) {
+                            const newNode = box.ownerDocument.createElement(c.nodeName);
+                            for (let j = 0; j < c.attributes.length; j += 1) {
+                                (0,_utils__WEBPACK_IMPORTED_MODULE_1__/* .attr */ .Lj)(newNode, c.attributes[j].nodeName, c.attributes[j].nodeValue);
+                            }
+                            if (c.childNodes.length === 0 || jodit_core_dom_dom__WEBPACK_IMPORTED_MODULE_0__/* .Dom.isTag */ .i.isTag(c, ['table'])) {
+                                switch (c.nodeName) {
+                                    case 'SCRIPT':
+                                        if (c.textContent) {
+                                            newNode.textContent = c.textContent;
+                                        }
+                                        break;
+                                    default:
+                                        if (c.innerHTML) {
+                                            newNode.innerHTML = c.innerHTML;
+                                        }
+                                        break;
+                                }
+                            }
+                            else {
+                                setHTML(newNode, c);
+                            }
+                            try {
+                                box.appendChild(newNode);
+                            }
+                            catch (_a) { }
+                        }
+                        else {
+                            try {
+                                box.appendChild(c.cloneNode(true));
+                            }
+                            catch (_b) { }
+                        }
+                    }
+                };
+                setHTML(div, value);
+                let images = div.querySelectorAll('[data-src]');
+                images.forEach(img => {
+                    img.setAttribute('src', img.getAttribute('data-src') || '');
+                });
+            });
+        }
         editor.e.fire('afterPreviewBox', div);
         return div;
     }
