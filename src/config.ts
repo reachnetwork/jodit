@@ -812,6 +812,10 @@ export class Config implements IViewOptions {
 			group: 'font',
 			buttons: []
 		},
+		{
+			group: 'custom',
+			buttons: []
+		},
 		'---',
 		{
 			group: 'script',

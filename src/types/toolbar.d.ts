@@ -320,6 +320,7 @@ export type ButtonGroup =
 	| string
 	| 'source'
 	| 'font-style'
+	| 'custom'
 	| 'script'
 	| 'list'
 	| 'indent'

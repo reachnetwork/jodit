@@ -19,6 +19,7 @@ import 'jodit/plugins/clean-html/clean-html';
 import 'jodit/plugins/clipboard/clipboard';
 import 'jodit/plugins/color/color';
 import 'jodit/plugins/copy-format/copy-format';
+import 'jodit/plugins/data-faqs/data-faqs';
 import 'jodit/plugins/drag-and-drop/drag-and-drop';
 import 'jodit/plugins/drag-and-drop-element/drag-and-drop-element';
 import 'jodit/plugins/enter/enter';
