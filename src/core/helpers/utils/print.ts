@@ -92,125 +92,147 @@ export function previewBox(
 			padding: 16
 		});
 
-    interface EditorTabs extends HTMLElement {
-      currentItem(): {id: string};
-    }
-    const tabs = document.querySelector('editor-tabs') as EditorTabs;
-    let currentItem;
-    if (tabs) {
-      currentItem = tabs.currentItem();
-    }
-    let value = '';
-    if (currentItem && currentItem.id) {
-      fetch(`${window.location.origin}/preview-item/${currentItem.id}`).then(
-        resp => {return resp.text()}
-      ).then(
-        text => {
-          console.log('text', text);
-          value = text;
+		interface EditorTabs extends HTMLElement {
+			currentItem(): { id: string };
+		}
+		const tabs = document.querySelector('editor-tabs') as EditorTabs;
+		let currentItem;
+		if (tabs) {
+			currentItem = tabs.currentItem();
+		}
+		let value = '';
+		if (currentItem && currentItem.id) {
+			fetch(`${window.location.origin}/preview-item/${currentItem.id}`)
+				.then(resp => {
+					return resp.text();
+				})
+				.then(text => {
+					console.log('text', text);
+					value = text;
 
-          if (editor.iframe) {
-            const iframe = editor.create.element('iframe');
+					if (editor.iframe) {
+						const iframe = editor.create.element('iframe');
 
-            css(iframe, {
-              minWidth: 800,
-              minHeight: 600,
-              border: 0
-            });
+						css(iframe, {
+							minWidth: 800,
+							minHeight: 600,
+							border: 0
+						});
 
-            div.appendChild(iframe);
+						div.appendChild(iframe);
 
-            const myWindow = iframe.contentWindow;
+						const myWindow = iframe.contentWindow;
 
-            if (myWindow) {
-              editor.e.fire(
-                'generateDocumentStructure.iframe',
-                myWindow.document,
-                editor
-              );
+						if (myWindow) {
+							editor.e.fire(
+								'generateDocumentStructure.iframe',
+								myWindow.document,
+								editor
+							);
 
-              div = myWindow.document.body;
+							div = myWindow.document.body;
 
-              if (typeof ResizeObserver === 'function') {
-                const resizeObserver = new ResizeObserver(entries => {
-                  iframe.style.height =
-                    myWindow.document.body.offsetHeight + 20 + 'px';
-                });
+							if (typeof ResizeObserver === 'function') {
+								const resizeObserver = new ResizeObserver(
+									entries => {
+										iframe.style.height =
+											myWindow.document.body
+												.offsetHeight +
+											20 +
+											'px';
+									}
+								);
 
-                resizeObserver.observe(myWindow.document.body);
+								resizeObserver.observe(myWindow.document.body);
 
-                editor.e.on('beforeDestruct', () => {
-                  resizeObserver.unobserve(myWindow.document.body);
-                });
-              }
-            }
-          } else {
-            css(div, {
-              minWidth: 1024,
-              minHeight: 600,
-              border: 0
-            });
-          }
+								editor.e.on('beforeDestruct', () => {
+									resizeObserver.unobserve(
+										myWindow.document.body
+									);
+								});
+							}
+						}
+					} else {
+						css(div, {
+							minWidth: 1024,
+							minHeight: 600,
+							border: 0
+						});
+					}
 
-          const setHTML = (box: HTMLElement, value: string | Element): void => {
-            const dv = isString(value) ? editor.c.div() : value;
+					const setHTML = (
+						box: HTMLElement,
+						value: string | Element
+					): void => {
+						const dv = isString(value) ? editor.c.div() : value;
 
-            if (isString(value)) {
-              dv.innerHTML = value;
-            }
+						if (isString(value)) {
+							dv.innerHTML = value;
+						}
 
-            for (let i = 0; i < dv.childNodes.length; i += 1) {
-              const c = dv.childNodes[i];
+						for (let i = 0; i < dv.childNodes.length; i += 1) {
+							const c = dv.childNodes[i];
 
-              if (Dom.isElement(c)) {
-                const newNode = box.ownerDocument.createElement(c.nodeName);
+							if (Dom.isElement(c)) {
+								const newNode = box.ownerDocument.createElement(
+									c.nodeName
+								);
 
-                for (let j = 0; j < c.attributes.length; j += 1) {
-                  attr(
-                    newNode,
-                    c.attributes[j].nodeName,
-                    c.attributes[j].nodeValue
-                  );
-                }
+								for (
+									let j = 0;
+									j < c.attributes.length;
+									j += 1
+								) {
+									attr(
+										newNode,
+										c.attributes[j].nodeName,
+										c.attributes[j].nodeValue
+									);
+								}
 
-                if (c.childNodes.length === 0 || Dom.isTag(c, ['table'])) {
-                  switch (c.nodeName) {
-                    case 'SCRIPT':
-                      if (c.textContent) {
-                        newNode.textContent = c.textContent;
-                      }
-                      break;
+								if (
+									c.childNodes.length === 0 ||
+									Dom.isTag(c, ['table'])
+								) {
+									switch (c.nodeName) {
+										case 'SCRIPT':
+											if (c.textContent) {
+												newNode.textContent =
+													c.textContent;
+											}
+											break;
 
-                    default:
-                      if (c.innerHTML) {
-                        newNode.innerHTML = c.innerHTML;
-                      }
-                      break;
-                  }
-                } else {
-                  setHTML(newNode, c);
-                }
+										default:
+											if (c.innerHTML) {
+												newNode.innerHTML = c.innerHTML;
+											}
+											break;
+									}
+								} else {
+									setHTML(newNode, c);
+								}
 
-                try {
-                  box.appendChild(newNode);
-                } catch {}
-              } else {
-                try {
-                  box.appendChild(c.cloneNode(true));
-                } catch {}
-              }
-            }
-          };
+								try {
+									box.appendChild(newNode);
+								} catch {}
+							} else {
+								try {
+									box.appendChild(c.cloneNode(true));
+								} catch {}
+							}
+						}
+					};
 
-          setHTML(div, value);
-          let images = div.querySelectorAll('[data-src]');
-          images.forEach(img => {
-            img.setAttribute('src', img.getAttribute('data-src') || '');
-          });
-        }
-      )
-    }
-
+					setHTML(div, value);
+					const images = div.querySelectorAll('[data-src]');
+					images.forEach(img => {
+						img.setAttribute(
+							'src',
+							img.getAttribute('data-src') || ''
+						);
+					});
+				});
+		}
 
 		editor.e.fire('afterPreviewBox', div);
 
