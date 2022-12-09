@@ -1220,6 +1220,10 @@ class Config {
                 group: 'font',
                 buttons: []
             },
+            {
+                group: 'custom',
+                buttons: []
+            },
             '---',
             {
                 group: 'script',
@@ -7014,7 +7018,11 @@ function previewBox(editor, defaultValue, points = 'px', container = null) {
         }
         let value = '';
         if (currentItem && currentItem.id) {
-            fetch(`${window.location.origin}/preview-item/${currentItem.id}`).then(resp => { return resp.text(); }).then(text => {
+            fetch(`${window.location.origin}/preview-item/${currentItem.id}`)
+                .then(resp => {
+                return resp.text();
+            })
+                .then(text => {
                 console.log('text', text);
                 value = text;
                 if (editor.iframe) {
@@ -7032,7 +7040,10 @@ function previewBox(editor, defaultValue, points = 'px', container = null) {
                         if (typeof ResizeObserver === 'function') {
                             const resizeObserver = new ResizeObserver(entries => {
                                 iframe.style.height =
-                                    myWindow.document.body.offsetHeight + 20 + 'px';
+                                    myWindow.document.body
+                                        .offsetHeight +
+                                        20 +
+                                        'px';
                             });
                             resizeObserver.observe(myWindow.document.body);
                             editor.e.on('beforeDestruct', () => {
@@ -7060,11 +7071,13 @@ function previewBox(editor, defaultValue, points = 'px', container = null) {
                             for (let j = 0; j < c.attributes.length; j += 1) {
                                 (0,_utils__WEBPACK_IMPORTED_MODULE_1__/* .attr */ .Lj)(newNode, c.attributes[j].nodeName, c.attributes[j].nodeValue);
                             }
-                            if (c.childNodes.length === 0 || jodit_core_dom_dom__WEBPACK_IMPORTED_MODULE_0__/* .Dom.isTag */ .i.isTag(c, ['table'])) {
+                            if (c.childNodes.length === 0 ||
+                                jodit_core_dom_dom__WEBPACK_IMPORTED_MODULE_0__/* .Dom.isTag */ .i.isTag(c, ['table'])) {
                                 switch (c.nodeName) {
                                     case 'SCRIPT':
                                         if (c.textContent) {
-                                            newNode.textContent = c.textContent;
+                                            newNode.textContent =
+                                                c.textContent;
                                         }
                                         break;
                                     default:
@@ -7091,7 +7104,7 @@ function previewBox(editor, defaultValue, points = 'px', container = null) {
                     }
                 };
                 setHTML(div, value);
-                let images = div.querySelectorAll('[data-src]');
+                const images = div.querySelectorAll('[data-src]');
                 images.forEach(img => {
                     img.setAttribute('src', img.getAttribute('data-src') || '');
                 });
@@ -23839,6 +23852,183 @@ function copyFormat(editor) {
 global/* pluginSystem.add */.pw.add('copyformat', copyFormat);
 icon/* Icon.set */.J.set('copyformat', __webpack_require__(83301));
 
+;// CONCATENATED MODULE: ./src/plugins/data-faqs/data-faqs.ts
+/*!
+ * Jodit Editor (https://xdsoft.net/jodit/)
+ * Released under MIT see LICENSE.txt in the project root for license information.
+ * Copyright (c) 2013-2022 Valeriy Chupurnov. All rights reserved. https://xdsoft.net
+ */
+
+
+
+config/* Config.prototype.controls.dataFaqs */.D.prototype.controls.dataFaqs = {
+    command: 'dataFaqs',
+    tooltip: 'Toggle data-faqs, data-faq-question, and data-faq-answer attributes',
+    isChildActive: (editor, control) => {
+        const current = editor.s.current();
+        if (current) {
+            const currentBox = dom_dom/* Dom.closest */.i.closest(current, dom_dom/* Dom.isBlock */.i.isBlock, editor.editor);
+            const faqParent = currentBox === null || currentBox === void 0 ? void 0 : currentBox.closest('div[data-faqs]');
+            const faqAnswer = currentBox === null || currentBox === void 0 ? void 0 : currentBox.closest('div[data-faq-answer]');
+            switch (control.name) {
+                case 'dataFaqsDiv':
+                    if (faqParent) {
+                        return true;
+                    }
+                    break;
+                case 'dataFaqQuestion':
+                    if (currentBox === null || currentBox === void 0 ? void 0 : currentBox.hasAttribute('data-faq-question')) {
+                        return true;
+                    }
+                    break;
+                case 'dataFaqAnswer':
+                    if (faqAnswer) {
+                        return true;
+                    }
+            }
+        }
+        return false;
+    },
+    isActive: (editor, _control) => {
+        const current = editor.s.current();
+        if (current) {
+            const currentBox = dom_dom/* Dom.closest */.i.closest(current, dom_dom/* Dom.isBlock */.i.isBlock, editor.editor);
+            const faqParent = currentBox === null || currentBox === void 0 ? void 0 : currentBox.closest('div[data-faqs]');
+            if (faqParent) {
+                return true;
+            }
+        }
+        return false;
+    },
+    list: {
+        dataFaqsDiv: 'Data FAQs Div',
+        dataFaqQuestion: 'Data FAQ Question',
+        dataFaqAnswer: 'Data FAQ Answer'
+    },
+    childTemplate: (_, _k, v) => v
+};
+function dataFaqs(editor) {
+    editor.registerButton({
+        name: 'dataFaqs',
+        group: 'custom'
+    });
+    const callback = (_command, _second, third) => {
+        const current = editor.s.current();
+        if (current) {
+            let attribute;
+            let currentBox = dom_dom/* Dom.closest */.i.closest(current, dom_dom/* Dom.isBlock */.i.isBlock, editor.editor);
+            if (currentBox == null ||
+                currentBox.classList.contains('jodit-wysiwyg')) {
+                alert('Please select one or more elements.');
+                return;
+            }
+            let parentDiv = currentBox.closest('div');
+            if (parentDiv && parentDiv.classList.contains('jodit-wysiwyg')) {
+                parentDiv = null;
+            }
+            const faqParent = currentBox.closest('div[data-faqs]');
+            let faqQuestion = null;
+            let faqAnswer = null;
+            if (faqParent) {
+                faqQuestion = faqParent.querySelector('[data-faq-question]');
+                faqAnswer = faqParent.querySelector('div[data-faq-answer]');
+            }
+            const range = editor.s.range;
+            range.setStartBefore(currentBox);
+            if (range.endContainer.nodeName === '#text' &&
+                range.endContainer.parentElement) {
+                range.setEndAfter(range.endContainer.parentElement);
+            }
+            else {
+                range.setEndBefore(range.endContainer);
+            }
+            switch (third) {
+                case 'dataFaqsDiv':
+                    if (faqParent != null) {
+                        currentBox = faqParent;
+                        if (faqQuestion != null) {
+                            alert('Please remove the data-faq-question attribute before removing the data-faqs attribute.');
+                            return;
+                        }
+                        else if (faqAnswer != null) {
+                            alert('Please remove the data-faq-answer attribute before removing the data-faqs attribute.');
+                            return;
+                        }
+                    }
+                    else if (currentBox.nodeName !== 'DIV') {
+                        if (parentDiv == null) {
+                            currentBox = dom_dom/* Dom.wrap */.i.wrap(range, 'div', editor.createInside);
+                        }
+                        else {
+                            currentBox = parentDiv;
+                        }
+                    }
+                    attribute = 'data-faqs';
+                    break;
+                case 'dataFaqQuestion':
+                    currentBox = dom_dom/* Dom.closest */.i.closest(current, dom_dom/* Dom.isElement */.i.isElement, editor.editor);
+                    if (faqParent == null) {
+                        alert('No data-faqs attribute found on the parent div.');
+                        return;
+                    }
+                    else if (!RegExp(/^H[1-6]/).test(currentBox.nodeName)) {
+                        alert('Please select a heading element.');
+                        return;
+                    }
+                    else if (faqQuestion != null &&
+                        faqQuestion !== currentBox) {
+                        alert('A question has already been set for this FAQ.');
+                        return;
+                    }
+                    attribute = 'data-faq-question';
+                    break;
+                case 'dataFaqAnswer':
+                    if (faqParent == null) {
+                        alert('No data-faqs attribute found on parent div.');
+                        return;
+                    }
+                    else if (currentBox === faqParent) {
+                        alert('Please select an element inside the FAQ.');
+                        return;
+                    }
+                    else if (faqAnswer != null) {
+                        currentBox = faqAnswer;
+                    }
+                    else if (currentBox.nodeName !== 'DIV') {
+                        if (parentDiv == null ||
+                            parentDiv === faqParent ||
+                            currentBox === faqParent) {
+                            currentBox = dom_dom/* Dom.wrap */.i.wrap(range, 'div', editor.createInside);
+                        }
+                        else {
+                            currentBox = parentDiv;
+                        }
+                    }
+                    attribute = 'data-faq-answer';
+                    break;
+                default:
+                    console.log('Invalid button name.');
+                    return;
+            }
+            if (currentBox.hasAttribute(attribute)) {
+                currentBox.removeAttribute(attribute);
+                if (currentBox.nodeName === 'DIV') {
+                    dom_dom/* Dom.unwrap */.i.unwrap(currentBox);
+                }
+            }
+            else {
+                currentBox.setAttribute(attribute, '');
+            }
+        }
+        else {
+            console.log('No element selected.');
+            return;
+        }
+    };
+    editor.registerCommand('datafaqs', callback);
+}
+global/* pluginSystem.add */.pw.add('dataFaqs', dataFaqs);
+
 // EXTERNAL MODULE: ./src/modules/file-browser/index.ts + 16 modules
 var file_browser = __webpack_require__(75121);
 ;// CONCATENATED MODULE: ./src/plugins/drag-and-drop/drag-and-drop.ts
@@ -32953,6 +33143,7 @@ global/* pluginSystem.add */.pw.add('xpath', xpath);
  * Released under MIT see LICENSE.txt in the project root for license information.
  * Copyright (c) 2013-2022 Valeriy Chupurnov. All rights reserved. https://xdsoft.net
  */
+
 
 
 
